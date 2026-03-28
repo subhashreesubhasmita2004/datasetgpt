@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DatasetGPT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            background: url("{{ url_for('static', filename='images/bg_hackthon.png') }}") no-repeat center center/cover;
+            height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            color: white;
+        }
+
+
+        .main-card {
+            border-radius: 20px;
+            padding: 30px;
+            background: rgba(54, 54, 54, 0.65);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(150, 149, 149, 0.1);
+        }
+
+        .title {
+            font-size: 26px;
+            font-weight: bold;
+            color: #ff00cc;
+        }
+        .chat-box {
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 12px;
+        }
+
+        .chat-box::placeholder {
+            color: #ccc;
+        }
+
+        .chat-box:focus {
+            background: rgba(82, 81, 81, 0.15);
+            color: white;
+            box-shadow: none;
+        }
+
+        .btn-custom {
+            border-radius: 10px;
+            padding: 10px 20px;
+            border: none;
+            font-weight: 500;
+        }
+
+        .btn-generate {
+            background: linear-gradient(45deg, #ff00cc, #3333ff);
+            color: white;
+        }
+
+        .btn-download {
+            background: linear-gradient(45deg, #00ffcc, #0099ff);
+            color: white;
+        }
+
+        .btn-danger {
+            border-radius: 10px;
+        }
+
+        table {
+            color: white;
+        }
+
+        th {
+            background: rgba(255,255,255,0.1);
+        }
+
+        td {
+            background: rgba(87, 86, 86, 0.05);
+        }
+
+        #result {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+    </style>
+</head>
+
+<body class="d-flex justify-content-center align-items-start">
+
+<div class="container mt-5">
+
+    <div class="main-card shadow">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="title">🤖 DataGPT</div>
+            <a href="/logout" class="btn btn-danger btn-sm">Logout</a>
+        </div>
+
+        <div class="mb-3">
+            <input type="text" id="userPrompt" class="form-control chat-box"
+                placeholder="Describe your dataset (e.g., hospital data with 100 rows...)">
+        </div>
+
+        <div class="mb-3 d-flex gap-2">
+            <button id="generateBtn" class="btn btn-custom btn-generate">Generate</button>
+            <button id="downloadBtn" class="btn btn-custom btn-download">Download CSV</button>
+        </div>
+
+        <div id="result" class="mt-3"></div>
+
+        <div class="mt-4">
+            <canvas id="chartCanvas"></canvas>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+let generatedData = [];
+
+$("#generateBtn").click(function(){
+
+    let prompt = $("#userPrompt").val();
+    if(!prompt) return;
+
+    $("#result").html('<div class="alert alert-info">⏳ Generating dataset...</div>');
+
+    $.ajax({
+        url: "/generate",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({prompt: prompt}),
+
+        success: function(data){
+
+            if(!data || data.length === 0){
+                $("#result").html('<div class="alert alert-warning">No data generated</div>');
+                return;
+            }
+
+            generatedData = data;
+
+            if(data.error){
+                $("#result").html('<div class="alert alert-danger">'+data.error+'</div>');
+                return;
+            }
+
+            let html = '<h5>📊 Generated Dataset</h5><table class="table table-bordered table-sm"><thead><tr>';
+
+            let columns = Object.keys(data[0]);
+            columns.forEach(c => html += '<th>'+c+'</th>');
+
+            html += '</tr></thead><tbody>';
+
+            data.forEach(row => {
+                html += '<tr>';
+                columns.forEach(c => html += '<td>'+ (row[c] ?? "") +'</td>');
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            $("#result").html(html);
+
+            if(!data[0].hasOwnProperty("diagnosis")) return;
+
+            let counts = {};
+            data.forEach(row => {
+                let val = row.diagnosis;
+                if(val){
+                    counts[val] = (counts[val] || 0) + 1;
+                }
+            });
+
+            let ctx = document.getElementById("chartCanvas").getContext("2d");
+
+            if(window.myChart){
+                window.myChart.destroy();
+            }
+
+            window.myChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: Object.keys(counts),
+                    datasets: [{
+                        label: "Diagnosis Count",
+                        data: Object.values(counts)
+                    }]
+                }
+            });
+
+        }
+    });
+
+});
+
+$("#downloadBtn").click(function(){
+
+    if(generatedData.length === 0){
+        alert("No dataset to download!");
+        return;
+    }
+
+    fetch("/download", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(generatedData)
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        let url = window.URL.createObjectURL(blob);
+        let a = document.createElement("a");
+        a.href = url;
+        a.download = "dataset.csv";
+        a.click();
+    });
+
+});
+
+</script>
+
+</body>
+</html>

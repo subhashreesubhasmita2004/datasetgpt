@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Blog - DataGPT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+        }
+
+        .overlay {
+            background: rgba(0, 0, 0, 0.5);
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="overlay">
+
+    <nav class="navbar navbar-dark px-5">
+        <span class="navbar-brand">DataGPT</span>
+
+        <div>
+            <a href="{{ url_for('home') }}" class="text-white me-4">HOME</a>
+            <a href="/blog" class="text-white me-4">BLOG</a>
+            <a href="/contact" class="text-white">CONTACTS</a>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+
+        <h1>📘 DataGPT Blog</h1>
+        <hr>
+
+        <h4>🚀 What is DataGPT?</h4>
+        <p>
+            DataGPT is an AI-powered tool that generates datasets based on user prompts.
+            It helps in testing machine learning models and data analysis.
+        </p>
+
+        <h4>💡 Features</h4>
+        <ul>
+            <li>Generate datasets using natural language</li>
+            <li>Add missing values, noise, duplicates</li>
+            <li>Download datasets as CSV</li>
+            <li>Very helpful for students</li>
+        </ul>
+
+    </div>
+
+</div>
+
+</body>
+</html>

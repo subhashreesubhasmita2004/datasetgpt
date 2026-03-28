@@ -1,0 +1,19 @@
+Create a realistic road accident dataset with 1000 rows.
+
+Columns should include:
+accident_id, date, time, location, vehicle_type, driver_age, driver_gender, weather_condition, road_type, speed, alcohol_involved, accident_severity, casualties, injuries, fatalities
+
+Requirements:
+- accident_id must be unique with no missing values
+- Add 10% missing values in weather_condition and speed columns
+- Add duplicates (5%) randomly
+- Add outliers in speed column (very high speeds like 200+)
+- Add inconsistent values in driver_gender (Male, male, M, Female, female)
+- Add noise to numerical columns
+- Make accident_severity imbalanced (70% minor, 20% major, 10% fatal)
+
+Also:
+- accident_severity should be the output column
+- all other columns are input features
+
+Ensure dataset looks realistic and usable for machine learning.
